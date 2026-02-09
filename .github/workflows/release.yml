@@ -1,0 +1,119 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  create-release:
+    name: 创建发布版本
+    runs-on: windows-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 设置 .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: 还原依赖
+      run: dotnet restore DesktopTranslator/DesktopTranslator.csproj
+      
+    - name: 发布 (x64 - 包含运行时)
+      run: dotnet publish DesktopTranslator/DesktopTranslator.csproj -c Release -r win-x64 --self-contained true -o DesktopTranslator/publish
+      
+    - name: 安装 Inno Setup
+      run: |
+        choco install innosetup -y
+        echo "C:\Program Files (x86)\Inno Setup 6" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      shell: pwsh
+      
+    - name: 获取版本号
+      id: get_version
+      run: |
+        if ("${{ github.ref }}" -like "refs/tags/*") {
+          $version = "${{ github.ref }}" -replace "refs/tags/v", ""
+        } else {
+          $version = "1.0.0-dev"
+        }
+        echo "version=$version" >> $env:GITHUB_OUTPUT
+        echo "版本号: $version"
+      shell: pwsh
+      
+    - name: 构建安装程序
+      run: |
+        New-Item -ItemType Directory -Force -Path installer
+        
+        if ("${{ github.ref }}" -like "refs/tags/*") {
+          $version = "${{ github.ref }}" -replace "refs/tags/v", ""
+        } else {
+          $version = "1.0.0-dev"
+        }
+        
+        Write-Host "使用版本号: $version"
+        
+        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DMyAppVersion=$version" setup.iss
+        
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "Inno Setup 构建失败！"
+          exit 1
+        }
+        
+        Write-Host "安装程序构建成功！"
+        Get-ChildItem installer\*.exe
+      shell: pwsh
+      
+    - name: 压缩便携版
+      run: Compress-Archive -Path DesktopTranslator/publish/* -DestinationPath DesktopTranslator-Portable-x64.zip
+      
+    - name: 创建 GitHub Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          installer/*.exe
+          DesktopTranslator-Portable-x64.zip
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+        body: |
+          ## 📦 下载方式
+          
+          ### 🎯 推荐：安装版（自动配置）
+          - **文件**: `DesktopTranslator_Setup_v*.exe`
+          - **说明**: 双击安装，自动创建快捷方式
+          - **包含**: .NET 8 运行时（无需单独安装）
+          - **大小**: 约 100MB
+          
+          ### 💼 便携版（免安装）
+          - **文件**: `DesktopTranslator-Portable-x64.zip`
+          - **说明**: 解压后直接运行 `DesktopTranslator.exe`
+          - **包含**: .NET 8 运行时
+          - **大小**: 约 100MB
+          
+          ## 🆕 更新内容
+          详见下方自动生成的发布说明。
+          
+          ## 📋 系统要求
+          - Windows 10 (版本 2004 或更高) / Windows 11 (64位)
+          - 约 200MB 磁盘空间
+          - 需要安装 OCR 语言包（系统设置 → 语言）
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: 上传构建产物
+      uses: actions/upload-artifact@v4
+      with:
+        name: DesktopTranslator-Release-${{ steps.get_version.outputs.version }}
+        path: |
+          installer/*.exe
+          DesktopTranslator-Portable-x64.zip
+        retention-days: 30

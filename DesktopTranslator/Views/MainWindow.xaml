@@ -1,0 +1,224 @@
+<Window x:Class="DesktopTranslator.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
+        Title="桌面翻译器"
+        Width="460" Height="620"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanMinimize"
+        Background="{StaticResource BackgroundBrush}"
+        FontFamily="{StaticResource AppFont}"
+        Closing="Window_Closing"
+        StateChanged="Window_StateChanged"
+        Loaded="Window_Loaded">
+
+    <Grid>
+        <!-- System Tray Icon -->
+        <tb:TaskbarIcon x:Name="TrayIcon"
+                        ToolTipText="桌面翻译器"
+                        TrayMouseDoubleClick="TrayIcon_DoubleClick">
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="显示主窗口" Click="ShowMainWindow_Click" FontWeight="Bold" />
+                    <MenuItem Header="选择翻译区域" Click="TraySelectRegion_Click" />
+                    <Separator />
+                    <MenuItem x:Name="TrayToggleItem" Header="开始翻译" Click="TrayToggleTranslation_Click" />
+                    <Separator />
+                    <MenuItem Header="设置" Click="TraySettings_Click" />
+                    <Separator />
+                    <MenuItem Header="退出" Click="TrayExit_Click" />
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
+
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- ==================== Header ==================== -->
+            <Border Grid.Row="0" Margin="0,0,0,20">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right"
+                            Style="{StaticResource IconButton}"
+                            Click="Settings_Click"
+                            ToolTip="设置" Width="36" Height="36">
+                        <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="16" />
+                    </Button>
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE774;" FontFamily="Segoe MDL2 Assets"
+                                       FontSize="28" Foreground="{StaticResource PrimaryBrush}"
+                                       VerticalAlignment="Center" Margin="0,0,10,0" />
+                            <TextBlock Text="桌面翻译器" FontSize="24" FontWeight="Bold"
+                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="实时翻译屏幕内容，AI 驱动"
+                                   FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"
+                                   Margin="38,4,0,0" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- ==================== Main Content ==================== -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <!-- Region Selection Card -->
+                    <Border Style="{StaticResource CardBorder}" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="翻译区域" Style="{StaticResource SectionHeader}" />
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right"
+                                        Content="选择区域"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Command="{Binding SelectRegionCommand}"
+                                        Padding="16,8" />
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding RegionInfo}"
+                                               FontSize="16" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                    <TextBlock FontSize="12" Foreground="{StaticResource TextTertiaryBrush}" Margin="0,4,0,0">
+                                        <Run Text="快捷键: Ctrl+Alt+S" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </DockPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Language Selection Card -->
+                    <Border Style="{StaticResource CardBorder}" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="语言设置" Style="{StaticResource SectionHeader}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="源语言" Style="{StaticResource FieldLabel}" />
+                                    <ComboBox ItemsSource="{Binding SourceLanguages}"
+                                              SelectedItem="{Binding SelectedSourceLanguage}"
+                                              Style="{StaticResource ModernComboBox}" />
+                                </StackPanel>
+
+                                <TextBlock Grid.Column="1"
+                                           Text="&#xE72A;" FontFamily="Segoe MDL2 Assets"
+                                           FontSize="16" Foreground="{StaticResource TextTertiaryBrush}"
+                                           VerticalAlignment="Bottom" Margin="14,0,14,8" />
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="目标语言" Style="{StaticResource FieldLabel}" />
+                                    <ComboBox ItemsSource="{Binding TargetLanguages}"
+                                              SelectedItem="{Binding SelectedTargetLanguage}"
+                                              Style="{StaticResource ModernComboBox}" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Capture Interval Card -->
+                    <Border Style="{StaticResource CardBorder}" Margin="0,0,0,14">
+                        <StackPanel>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right"
+                                           FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{StaticResource PrimaryBrush}"
+                                           VerticalAlignment="Center">
+                                    <Run Text="{Binding CaptureInterval}" />
+                                    <Run Text=" 秒" />
+                                </TextBlock>
+                                <TextBlock Text="翻译间隔" Style="{StaticResource SectionHeader}" Margin="0" />
+                            </DockPanel>
+                            <Slider Value="{Binding CaptureInterval}"
+                                    Minimum="1" Maximum="10"
+                                    TickFrequency="1"
+                                    IsSnapToTickEnabled="True"
+                                    Margin="0,10,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Action Buttons -->
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="10" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0"
+                                Style="{StaticResource PrimaryButton}"
+                                Command="{Binding ToggleTranslationCommand}"
+                                IsEnabled="{Binding HasRegion}"
+                                Padding="0,14"
+                                FontSize="15">
+                            <Button.Content>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock x:Name="ToggleIcon" Text="&#xE768;"
+                                               FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                               VerticalAlignment="Center" Margin="0,0,8,0" />
+                                    <TextBlock x:Name="ToggleText" Text="开始翻译" />
+                                </StackPanel>
+                            </Button.Content>
+                        </Button>
+
+                        <Button Grid.Column="2"
+                                Content="翻译一次"
+                                Style="{StaticResource SecondaryButton}"
+                                Command="{Binding TranslateOnceCommand}"
+                                IsEnabled="{Binding HasRegion}"
+                                Padding="0,14"
+                                FontSize="15" />
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ==================== Status Bar ==================== -->
+            <Border Grid.Row="2"
+                    Background="{StaticResource CardBackgroundBrush}"
+                    CornerRadius="8"
+                    Padding="16,12"
+                    Margin="0,14,0,0"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Connection Status -->
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse x:Name="StatusDot" Width="8" Height="8"
+                                 Fill="{StaticResource TextTertiaryBrush}"
+                                 VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <TextBlock Text="{Binding ConnectionStatus}"
+                                   Style="{StaticResource StatusText}" VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <!-- Translation Count -->
+                    <TextBlock Grid.Column="1"
+                               Style="{StaticResource StatusText}"
+                               VerticalAlignment="Center" Margin="0,0,16,0">
+                        <Run Text="已翻译: " />
+                        <Run Text="{Binding TranslationCount}" FontWeight="SemiBold" />
+                        <Run Text=" 次" />
+                    </TextBlock>
+
+                    <!-- Last Translation Time -->
+                    <TextBlock Grid.Column="2"
+                               Style="{StaticResource StatusText}"
+                               VerticalAlignment="Center">
+                        <Run Text="最后: " />
+                        <Run Text="{Binding LastTranslationTime}" FontWeight="SemiBold" />
+                    </TextBlock>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

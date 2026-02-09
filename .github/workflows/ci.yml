@@ -1,0 +1,65 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: 构建和测试
+    runs-on: windows-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 设置 .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: 还原依赖
+      run: dotnet restore DesktopTranslator/DesktopTranslator.csproj
+      
+    - name: 编译项目 (Debug)
+      run: dotnet build DesktopTranslator/DesktopTranslator.csproj --configuration Debug --no-restore
+      
+    - name: 编译项目 (Release)
+      run: dotnet build DesktopTranslator/DesktopTranslator.csproj --configuration Release --no-restore
+      
+    - name: 上传构建产物 (Release)
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: DesktopTranslator-Release-${{ github.sha }}
+        path: DesktopTranslator/bin/Release/net8.0-windows10.0.19041.0/
+        retention-days: 7
+        
+  code-quality:
+    name: 代码质量检查
+    runs-on: windows-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 设置 .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: 还原依赖
+      run: dotnet restore DesktopTranslator/DesktopTranslator.csproj
+      
+    - name: 代码格式检查
+      run: dotnet format DesktopTranslator/DesktopTranslator.csproj --verify-no-changes --no-restore
+      continue-on-error: true
+      
+    - name: 编译时警告检查
+      run: dotnet build DesktopTranslator/DesktopTranslator.csproj --configuration Release --no-restore /warnaserror:CS0618
+      continue-on-error: true
