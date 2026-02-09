@@ -41,7 +41,7 @@ VersionInfoVersion={#MyAppVersion}
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "创建桌面快捷方式"; GroupDescription: "附加图标:"; Flags: checked
+Name: "desktopicon"; Description: "Create desktop shortcut"; GroupDescription: "Additional icons:"
 
 [Files]
 Source: "DesktopTranslator\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
