@@ -21,6 +21,13 @@
             MouseMove="Widget_MouseMove"
             MouseEnter="Widget_MouseEnter"
             MouseLeave="Widget_MouseLeave">
+        <Border.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="显示主窗口" Click="ShowMainWindow_Click" FontWeight="Bold" />
+                <Separator />
+                <MenuItem Header="退出" Click="Exit_Click" />
+            </ContextMenu>
+        </Border.ContextMenu>
         <Border.Effect>
             <DropShadowEffect BlurRadius="12" ShadowDepth="2"
                               Opacity="0.12" Color="Black" Direction="270" />

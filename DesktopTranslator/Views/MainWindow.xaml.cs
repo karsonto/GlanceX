@@ -30,6 +30,11 @@ public partial class MainWindow : Window
         // Create mini widget
         _miniWidget = new MiniWidget();
         _miniWidget.RestoreRequested += () => Dispatcher.Invoke(ShowAndActivate);
+        _miniWidget.ExitRequested += () => Dispatcher.Invoke(() =>
+        {
+            _isExiting = true;
+            Application.Current.Shutdown();
+        });
 
         // Create and set ViewModel
         _viewModel = new MainViewModel(_settingsService, _controller);

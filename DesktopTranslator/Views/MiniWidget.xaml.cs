@@ -17,6 +17,11 @@ public partial class MiniWidget : Window
     /// </summary>
     public event Action? RestoreRequested;
 
+    /// <summary>
+    /// Raised when the user selects "退出" from the context menu.
+    /// </summary>
+    public event Action? ExitRequested;
+
     public MiniWidget()
     {
         InitializeComponent();
@@ -137,6 +142,18 @@ public partial class MiniWidget : Window
         }
 
         _isDragging = false;
+    }
+
+    // ==================== Context Menu ====================
+
+    private void ShowMainWindow_Click(object sender, RoutedEventArgs e)
+    {
+        RestoreRequested?.Invoke();
+    }
+
+    private void Exit_Click(object sender, RoutedEventArgs e)
+    {
+        ExitRequested?.Invoke();
     }
 
     // ==================== Hover Effects ====================
