@@ -12,6 +12,7 @@ public partial class MainWindow : Window
     private readonly HotkeyService _hotkeyService;
     private readonly MainViewModel _viewModel;
     private readonly TranslationOverlay _overlay;
+    private readonly MiniWidget _miniWidget;
     private bool _isExiting;
 
     public MainWindow()
@@ -25,6 +26,10 @@ public partial class MainWindow : Window
 
         // Create overlay
         _overlay = new TranslationOverlay();
+
+        // Create mini widget
+        _miniWidget = new MiniWidget();
+        _miniWidget.RestoreRequested += () => Dispatcher.Invoke(ShowAndActivate);
 
         // Create and set ViewModel
         _viewModel = new MainViewModel(_settingsService, _controller);
@@ -44,6 +49,7 @@ public partial class MainWindow : Window
             {
                 UpdateToggleButton(_viewModel.IsTranslating);
                 UpdateTrayMenu(_viewModel.IsTranslating);
+                UpdateWidgetBreathing(_viewModel.IsTranslating);
             }
             else if (e.PropertyName == nameof(MainViewModel.ConnectionStatus))
             {
@@ -127,6 +133,17 @@ public partial class MainWindow : Window
         });
     }
 
+    private void UpdateWidgetBreathing(bool isTranslating)
+    {
+        Dispatcher.Invoke(() =>
+        {
+            if (isTranslating)
+                _miniWidget.StartBreathing();
+            else
+                _miniWidget.StopBreathing();
+        });
+    }
+
     private void UpdateConnectionDot(string status)
     {
         Dispatcher.Invoke(() =>
@@ -155,6 +172,7 @@ public partial class MainWindow : Window
             // Minimize to tray instead of closing
             e.Cancel = true;
             Hide();
+            _miniWidget.Show();
             return;
         }
 
@@ -164,6 +182,7 @@ public partial class MainWindow : Window
         _controller.Dispose();
         _hotkeyService.Dispose();
         _overlay.Close();
+        _miniWidget.Close();
         TrayIcon.Dispose();
     }
 
@@ -172,6 +191,7 @@ public partial class MainWindow : Window
         if (WindowState == WindowState.Minimized)
         {
             Hide();
+            _miniWidget.Show();
         }
     }
 
@@ -211,6 +231,7 @@ public partial class MainWindow : Window
 
     private void ShowAndActivate()
     {
+        _miniWidget.Hide();
         Show();
         WindowState = WindowState.Normal;
         Activate();

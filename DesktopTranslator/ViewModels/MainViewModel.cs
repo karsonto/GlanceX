@@ -164,7 +164,7 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task ToggleTranslation()
+    private void ToggleTranslation()
     {
         if (IsTranslating)
         {
@@ -191,10 +191,24 @@ public partial class MainViewModel : ObservableObject
             IsTranslating = true;
             StatusText = "正在启动翻译...";
 
-            await _controller.StartAsync();
+            // Fire-and-forget: don't await so the command returns immediately
+            // and the button stays enabled for stopping
+            _ = RunTranslationLoopAsync();
+        }
+    }
 
-            // When StartAsync returns, translation has stopped
-            IsTranslating = false;
+    private async Task RunTranslationLoopAsync()
+    {
+        try
+        {
+            await _controller.StartAsync();
+        }
+        finally
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                IsTranslating = false;
+            });
         }
     }
 

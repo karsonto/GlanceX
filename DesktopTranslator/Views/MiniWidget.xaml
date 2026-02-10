@@ -1,0 +1,78 @@
+<Window x:Class="DesktopTranslator.Views.MiniWidget"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        Width="152" Height="48">
+
+    <Border x:Name="WidgetBorder"
+            Background="White"
+            CornerRadius="22"
+            Margin="4"
+            BorderBrush="#E8E8E8"
+            BorderThickness="1"
+            Cursor="Hand"
+            MouseLeftButtonDown="Widget_MouseLeftButtonDown"
+            MouseLeftButtonUp="Widget_MouseLeftButtonUp"
+            MouseMove="Widget_MouseMove"
+            MouseEnter="Widget_MouseEnter"
+            MouseLeave="Widget_MouseLeave">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="12" ShadowDepth="2"
+                              Opacity="0.12" Color="Black" Direction="270" />
+        </Border.Effect>
+
+        <!-- Hover scale transform -->
+        <Border.RenderTransform>
+            <ScaleTransform x:Name="WidgetScale" ScaleX="1" ScaleY="1" />
+        </Border.RenderTransform>
+        <Border.RenderTransformOrigin>
+            <Point X="0.5" Y="0.5" />
+        </Border.RenderTransformOrigin>
+
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Margin="16,0">
+
+            <!-- Brand dot with breathing animation -->
+            <Grid Width="12" Height="12" Margin="0,0,10,0">
+                <!-- Glow layer (behind the dot) -->
+                <Ellipse x:Name="DotGlow"
+                         Width="12" Height="12"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         Opacity="0">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#0078D4" Offset="0.3" />
+                            <GradientStop Color="#000078D4" Offset="1.0" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+
+                <!-- Main dot -->
+                <Ellipse x:Name="BrandDot"
+                         Width="10" Height="10"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center">
+                    <Ellipse.Fill>
+                        <SolidColorBrush x:Name="DotBrush" Color="#0078D4" />
+                    </Ellipse.Fill>
+                </Ellipse>
+            </Grid>
+
+            <!-- Brand text -->
+            <TextBlock Text="GlanceX"
+                       FontFamily="{StaticResource AppFont}"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       Foreground="#333333"
+                       VerticalAlignment="Center" />
+        </StackPanel>
+    </Border>
+</Window>
